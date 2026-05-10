@@ -293,69 +293,32 @@ def get_sev_props(sev):
 
 # --- SIDEBAR ---
 with st.sidebar:
-    st.markdown("### ⚙️ Konfigurasi Model")
-    st.info("Pilih tipe arsitektur dan unggah bobot model (.h5).")
+    st.markdown("### ⚙️ Status Model AI")
     
-    MOD_PATH = "persistent_model.h5"
-    META_PATH = "persistent_meta.txt"
+    MODEL_NAME = "model_resnet50.h5"
+    arch_type = "ResNet50"
+    norm_mode = "Standard Keras (ResNet/MobileNet)" # Mengunci preprocessing yang tepat untuk ResNet
     
-    # Load metadata persistence to set current default dropdown
-    cur_arch = "CNN Baseline"
-    if os.path.exists(META_PATH):
-        try:
-            with open(META_PATH, "r") as r:
-                saved_a = r.read().strip()
-                if saved_a: cur_arch = saved_a
-        except: pass
-
-    arch_list = ["CNN Baseline", "ResNet50", "EfficientNetB0"]
-    d_idx = arch_list.index(cur_arch) if cur_arch in arch_list else 0
-    
-    arch_type = st.selectbox("Arsitektur Model", arch_list, index=d_idx)
-    uploaded_model_file = st.file_uploader(f"Unggah File {arch_type}", type=["h5", "keras"])
-    
-    st.markdown("---")
-    st.caption("**Preprocessing Input (PENTING)**")
-    norm_mode = st.selectbox(
-        "Normalisasi Gambar", 
-        ["Rescale 1./255", "Standard Keras (ResNet/MobileNet)", "EfficientNet V1 (Native 0-255)"],
-        help="Sesuaikan dengan preprocessing saat Anda men-training model. Salah pilih akan membuat hasil prediksi ngawur/statis."
-    )
-    
-    # Handle Fresh Upload to Persistence
-    if uploaded_model_file:
-        with open(MOD_PATH, "wb") as f:
-            f.write(uploaded_model_file.getbuffer())
-        with open(META_PATH, "w") as f:
-            f.write(arch_type)
-        st.success("Model tersimpan ke sistem!")
-        # Use clear state technique or just proceed to auto-load
-        st.rerun()
-
     active_mode = "Simulasi"
     loaded_model = None
     
-    # Attempt Auto-Load from persistence if present on disk
-    if os.path.exists(MOD_PATH):
-        with st.spinner(f"🔄 Memuat {cur_arch}..."):
-            mod = load_prediction_model(MOD_PATH)
+    if os.path.exists(MODEL_NAME):
+        with st.spinner("🧠 Memuat Arsitektur ResNet50..."):
+            mod = load_prediction_model(MODEL_NAME)
             if isinstance(mod, Exception):
-                st.error(f"Gagal memuat file tersimpan: {str(mod)}")
-                os.remove(MOD_PATH) # purge corrupted
+                st.error(f"❌ Gagal memuat file model: {str(mod)}")
             else:
                 loaded_model = mod
                 active_mode = "Real"
-                arch_type = cur_arch # ensure correct tag for prediction label usage
-                st.success(f"🔥 {cur_arch} Aktif!")
-                
-                # Optional Clean-up widget
-                if st.button("🗑️ Reset/Hapus Model Cached"):
-                    if os.path.exists(MOD_PATH): os.remove(MOD_PATH)
-                    if os.path.exists(META_PATH): os.remove(META_PATH)
-                    st.cache_resource.clear()
-                    st.rerun()
+                st.success("✅ Sistem AI ResNet50 Aktif!")
+                st.info(f"Memuat: `{MODEL_NAME}`")
     else:
-        st.warning("🛡️ Mode Simulasi Aktif")
+        st.warning(f"⚠️ Model `{MODEL_NAME}` tidak ditemukan di root direktori.")
+        st.markdown(f"""
+        <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 0.75rem; border-radius: 4px; font-size: 0.85rem;">
+            Mode Simulasi aktif karena program belum menemukan file model di direktori utama anda.
+        </div>
+        """, unsafe_allow_html=True)
 
     st.markdown("---")
     st.caption("**Order Label Output (Model):**")
