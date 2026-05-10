@@ -26,11 +26,41 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# --- WORKAROUND FOR KERAS VERSION COMPATIBILITY ---
+# Terkadang export dari Keras terbaru menambahkan parameter 'quantization_config' 
+# yang membuat error pada saat load di environment lawas. Kode di bawah me-bypass-nya secara aman.
+class SafeDense(tf.keras.layers.Dense):
+    def __init__(self, *args, **kwargs):
+        kwargs.pop('quantization_config', None)
+        super().__init__(*args, **kwargs)
+
+class SafeConv2D(tf.keras.layers.Conv2D):
+    def __init__(self, *args, **kwargs):
+        kwargs.pop('quantization_config', None)
+        super().__init__(*args, **kwargs)
+
+class SafeBatchNormalization(tf.keras.layers.BatchNormalization):
+    def __init__(self, *args, **kwargs):
+        kwargs.pop('quantization_config', None)
+        super().__init__(*args, **kwargs)
+
+class SafeDepthwiseConv2D(tf.keras.layers.DepthwiseConv2D):
+    def __init__(self, *args, **kwargs):
+        kwargs.pop('quantization_config', None)
+        super().__init__(*args, **kwargs)
+
 # --- CACHED FUNCTIONS FOR MODEL LOAD ---
 @st.cache_resource
 def load_prediction_model(model_path):
     try:
-        model = load_model(model_path, compile=False)
+        # Inject object kustom yang aman terhadap bug quantization_config
+        custom_objects = {
+            'Dense': SafeDense,
+            'Conv2D': SafeConv2D,
+            'BatchNormalization': SafeBatchNormalization,
+            'DepthwiseConv2D': SafeDepthwiseConv2D
+        }
+        model = load_model(model_path, compile=False, custom_objects=custom_objects)
         return model
     except Exception as e:
         return e
@@ -327,9 +357,16 @@ with st.sidebar:
         if GDRIVE_FILE_ID and "YOUR_FILE_ID" not in GDRIVE_FILE_ID:
             with st.status("📥 Mendownload model dari Google Drive...", expanded=True) as status:
                 try:
-                    # gdown handles heavy lift
-                    url = f'https://drive.google.com/uc?id={GDRIVE_FILE_ID}'
-                    gdown.download(url, MODEL_NAME, quiet=False)
+                    # Cek apakah user memasukkan link utuh, ambil ID-nya saja
+                    import re
+                    target_id = GDRIVE_FILE_ID.strip()
+                    if "drive.google.com" in target_id:
+                        match = re.search(r'/d/([^/]+)', target_id)
+                        if match:
+                            target_id = match.group(1)
+                            
+                    url = f'https://drive.google.com/uc?id={target_id}'
+                    gdown.download(url, MODEL_NAME, quiet=False, fuzzy=True)
                     status.update(label="✅ Download Selesai!", state="complete")
                     st.rerun() # Bootstrap loading logic
                 except Exception as de:
