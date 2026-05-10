@@ -8,6 +8,15 @@ import os
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import load_model
+import gdown
+
+# ========================================================
+# CONFIGURATION: ID FILE GOOGLE DRIVE MODEL ANDA
+# ========================================================
+# Masukkan ID file model anda dari Google Drive di bawah ini.
+# Contoh link: https://drive.google.com/file/d/FILE_ID_DISINI/view
+GDRIVE_FILE_ID = "https://drive.google.com/file/d/1pMP-trDs2moQh-doiCblsiPMa-_DTpT5/view?usp=sharing" 
+# ========================================================
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
@@ -313,12 +322,26 @@ with st.sidebar:
                 st.success("✅ Sistem AI ResNet50 Aktif!")
                 st.info(f"Memuat: `{MODEL_NAME}`")
     else:
-        st.warning(f"⚠️ Model `{MODEL_NAME}` tidak ditemukan di root direktori.")
-        st.markdown(f"""
-        <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 0.75rem; border-radius: 4px; font-size: 0.85rem;">
-            Mode Simulasi aktif karena program belum menemukan file model di direktori utama anda.
-        </div>
-        """, unsafe_allow_html=True)
+        st.warning(f"⚠️ Model `{MODEL_NAME}` belum ada di server.")
+        
+        if GDRIVE_FILE_ID and "YOUR_FILE_ID" not in GDRIVE_FILE_ID:
+            with st.status("📥 Mendownload model dari Google Drive...", expanded=True) as status:
+                try:
+                    # gdown handles heavy lift
+                    url = f'https://drive.google.com/uc?id={GDRIVE_FILE_ID}'
+                    gdown.download(url, MODEL_NAME, quiet=False)
+                    status.update(label="✅ Download Selesai!", state="complete")
+                    st.rerun() # Bootstrap loading logic
+                except Exception as de:
+                    status.update(label="❌ Gagal Download!", state="error")
+                    st.error(f"Gagal mengunduh model otomatis: {str(de)}")
+        else:
+            st.info("💡 Silakan isi `GDRIVE_FILE_ID` di baris ke-12 `app.py` agar server cloud bisa mendownload model otomatis.")
+            st.markdown(f"""
+            <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 0.75rem; border-radius: 4px; font-size: 0.85rem;">
+                Mode Simulasi aktif.
+            </div>
+            """, unsafe_allow_html=True)
 
     st.markdown("---")
     st.caption("**Order Label Output (Model):**")
