@@ -423,7 +423,7 @@ with colL:
             # Generate unique signature to detect change
             src_id = getattr(final_source, "name", "camera")
             src_size = getattr(final_source, "size", random.randint(0,999999))
-            mid = f"{src_id}_{src_size}_{uploaded_model_file.name if uploaded_model_file else 'sim'}"
+            mid = f"{src_id}_{src_size}_fixed"
             
             if 'curr_id' not in st.session_state or st.session_state.curr_id != mid:
                 st.session_state.curr_id = mid
