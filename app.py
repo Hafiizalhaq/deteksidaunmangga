@@ -22,7 +22,7 @@ import gdown
 # ========================================================
 # Masukkan ID file model anda dari Google Drive di bawah ini.
 # Contoh link: https://drive.google.com/file/d/FILE_ID_DISINI/view
-GDRIVE_FILE_ID = "https://drive.google.com/file/d/1P1Xlxi5qq7NQKA-hs0PeZwycbNIn4RTP/view?usp=sharing"
+GDRIVE_FILE_ID = "1P1Xlxi5qq7NQKA-hs0PeZwycbNIn4RTP"
 # ========================================================
 
 # --- PAGE CONFIGURATION ---
