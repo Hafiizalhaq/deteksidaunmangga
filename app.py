@@ -17,6 +17,15 @@ from torchvision.models import (
 from torchvision import transforms
 import gdown
 
+url = f"https://drive.google.com/uc?id={target_id}"
+
+gdown.download(
+    url,
+    MODEL_NAME,
+    quiet=False,
+    fuzzy=True
+)
+
 # ========================================================
 # CONFIGURATION: ID FILE GOOGLE DRIVE MODEL ANDA
 # ========================================================
