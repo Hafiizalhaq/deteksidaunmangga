@@ -1,6 +1,6 @@
-streamlit>=1.35.0
+streamlit
 torch
 torchvision
 numpy<2.0
 Pillow
-gdown
+requests
