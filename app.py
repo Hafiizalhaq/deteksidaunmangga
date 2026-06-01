@@ -317,94 +317,116 @@ def get_sev_props(sev):
 # --- SIDEBAR ---
 with st.sidebar:
     st.markdown("### ⚙️ Status Model AI")
-    
-    MODEL_NAME = "model fix.pth"
+
+    MODEL_NAME = "model.fix.pth"
     arch_type = "ResNet50"
-    
-    
+
     active_mode = "Simulasi"
     loaded_model = None
-    
+
     if os.path.exists(MODEL_NAME):
+
         with st.spinner("🧠 Memuat Arsitektur ResNet50..."):
-            mod = load_prediction_model(MODEL_NAME)
+
+            mod = load_prediction_model(
+                MODEL_NAME
+            )
+
             if isinstance(mod, Exception):
-                st.error(f"❌ Gagal memuat file model: {str(mod)}")
+
+                st.error(
+                    f"❌ Gagal memuat file model: {str(mod)}"
+                )
+
             else:
+
                 loaded_model = mod
+
                 active_mode = "Real"
-                st.success("✅ Sistem AI ResNet50 Aktif!")
-                st.info(f"Memuat: `{MODEL_NAME}`")
+
+                st.success(
+                    "✅ Sistem AI ResNet50 Aktif!"
+                )
+
+                st.info(
+                    f"Memuat: `{MODEL_NAME}`"
+                )
+
     else:
-        st.warning(f"⚠️ Model `{MODEL_NAME}` belum ada di server.")
-        
-        if not os.path.exists(MODEL_NAME):
 
-    with st.status(
-        "📥 Downloading model...",
-        expanded=True
-    ):
+        st.warning(
+            f"⚠️ Model `{MODEL_NAME}` belum ada di server."
+        )
 
-        try:
+        with st.status(
+            "📥 Downloading model...",
+            expanded=True
+        ):
 
-            response = requests.get(
-                MODEL_URL,
-                stream=True,
-                timeout=300
-            )
+            try:
 
-            response.raise_for_status()
+                response = requests.get(
+                    MODEL_URL,
+                    stream=True,
+                    timeout=300
+                )
 
-            with open(MODEL_NAME, "wb") as f:
+                response.raise_for_status()
 
-                for chunk in response.iter_content(
-                    chunk_size=8192
-                ):
-                    if chunk:
-                        f.write(chunk)
+                with open(MODEL_NAME, "wb") as f:
 
-            st.success(
-                "✅ Model berhasil didownload"
-            )
+                    for chunk in response.iter_content(
+                        chunk_size=8192
+                    ):
 
-        except Exception as e:
+                        if chunk:
+                            f.write(chunk)
 
-            st.error(
-                f"❌ Gagal download model: {e}"
-            )
+                st.success(
+                    "✅ Model berhasil didownload"
+                )
 
-        try:
+                mod = load_prediction_model(
+                    MODEL_NAME
+                )
 
-            response = requests.get(
-                MODEL_URL,
-                stream=True,
-                timeout=300
-            )
+                if isinstance(mod, Exception):
 
-            response.raise_for_status()
+                    st.error(
+                        f"❌ Gagal memuat model: {str(mod)}"
+                    )
 
-            with open(MODEL_NAME, "wb") as f:
+                else:
 
-                for chunk in response.iter_content(
-                    chunk_size=8192
-                ):
-                    if chunk:
-                        f.write(chunk)
+                    loaded_model = mod
 
-            st.success(
-                "✅ Model berhasil didownload"
-            )
+                    active_mode = "Real"
 
-        except Exception as e:
+                    st.success(
+                        "✅ Sistem AI ResNet50 Aktif!"
+                    )
 
-            st.error(
-                f"❌ Gagal download model: {e}"
-            )
+                    st.info(
+                        f"Memuat: `{MODEL_NAME}`"
+                    )
+
+            except Exception as e:
+
+                st.error(
+                    f"❌ Gagal download model: {str(e)}"
+                )
 
     st.markdown("---")
+
     st.caption("**Order Label Output (Model):**")
-    for idx, label in enumerate(DIAGNOSIS_LABELS):
-        st.caption(f"**[{idx}]** {label}")
+
+    for idx, label in enumerate(
+        DIAGNOSIS_LABELS
+    ):
+
+        st.caption(
+            f"**[{idx}]** {label}"
+        )
 
 # --- HEADER BANNER ---
 st.markdown(f"""
