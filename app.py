@@ -23,12 +23,6 @@ import gdown
 # Masukkan ID file model anda dari Google Drive di bawah ini.
 # Contoh link: https://drive.google.com/file/d/FILE_ID_DISINI/view
 GDRIVE_FILE_ID = "https://drive.google.com/file/d/1P1Xlxi5qq7NQKA-hs0PeZwycbNIn4RTP/view?usp=sharing"
-
-st.write("Target ID:", target_id)
-
-url = f"https://drive.google.com/uc?id={target_id}"
-
-st.write(url)
 # ========================================================
 
 # --- PAGE CONFIGURATION ---
