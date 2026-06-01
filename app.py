@@ -258,7 +258,7 @@ DETAILED_INFO = {
         'severity': 'severe',
         'description': 'Antraknosa dipicu oleh jamur Colletotrichum gloeosporioides. Ciri khasnya adalah bercak hitam nekrotik yang meluas di daun dan membentuk lesi cekung pada buah. Penyakit ini sangat menular melalui percikan air hujan dan kelembapan tinggi, memicu kerontokan daun masif jika tidak ditangani.'
     },
-    'Bacterial Cancer': {
+    'Bacterial Canker': {
         'severity': 'severe',
         'description': 'Dikenal juga sebagai Kanker Bakteri Mangga (Xanthomonas axonopodis). Gejala berupa bercak basah (water-soaked) berbentuk bersudut (angular) yang lambat laun mengering, menebal, dan menyerupai kerak pecah-pecah pada daun dan batang. Bakteri ini bersifat sistemik dan menyerang jaringan vaskular pohon.'
     },
@@ -290,7 +290,7 @@ def get_treatments(disease, severity):
             {'icon': REC_SVGS['spark'], 'title': 'Nutrisi Daya Tahan', 'desc': 'Berikan pupuk tinggi Kalium (K) untuk mempertebal dinding sel daun sehingga lebih sulit ditembus miselium jamur.'},
             {'icon': REC_SVGS['drop'], 'title': 'Pascapanen Hot-Water', 'desc': 'Untuk buah, lakukan perendaman air panas (52°C) selama 5 menit untuk membunuh spora laten yang terbawa.'}
         ]
-    elif "Bacterial Cancer" in disease:
+    elif "Bacterial Canker" in disease:
         treat = [
             {'icon': REC_SVGS['shield'], 'title': 'Bakterisida Tembaga Hidroksida', 'desc': 'Semprotkan bakterisida berbahan aktif Tembaga Hidroksida (dosis 2g/Liter) atau antibiotik tanaman Streptomycin secara berkala.'},
             {'icon': REC_SVGS['scissor'], 'title': 'Bedah Luka Batang & Plester', 'desc': 'Kupas bagian kulit kayu yang terkena kanker dengan pisau bersih, lalu oleskan pasta fungisida pekat atau Bubur Bordo (Bordeaux Mixture).'},
@@ -599,7 +599,7 @@ st.markdown("""
     <h3 style="color: white !important; margin-top: 0;">📌 Referensi Penyakit Umum</h3>
     <div class="d-grid">
         <div class="d-box"><h4>Antraknosa</h4><p>Bercak hitam pada daun.</p></div>
-        <div class="d-box"><h4>Bacterial Cancer</h4><p>Bercak basah dan berkerak.</p></div>
+        <div class="d-box"><h4>Bacterial Canker</h4><p>Bercak basah dan berkerak.</p></div>
         <div class="d-box"><h4>Embun Tepung</h4><p>Lapisan putih seperti bedak.</p></div>
         <div class="d-box"><h4>Sehat</h4><p>Daun hijau segar normal.</p></div>
     </div>
