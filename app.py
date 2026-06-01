@@ -8,6 +8,7 @@ import os
 import numpy as np
 import torch
 import torch.nn as nn
+import requests
 
 from torchvision.models import (
     resnet50,
@@ -15,24 +16,14 @@ from torchvision.models import (
 )
 
 from torchvision import transforms
-import gdown
+MODEL_NAME = "model.fix.pth"
 
-url = f"https://drive.google.com/uc?id={target_id}"
-
-gdown.download(
-    url,
-    MODEL_NAME,
-    quiet=False,
-    fuzzy=True
+MODEL_URL = (
+    "https://github.com/Hafiizalhaq/"
+    "deteksidaunmangga/releases/download/"
+    "v.1/model.fix.pth"
 )
 
-# ========================================================
-# CONFIGURATION: ID FILE GOOGLE DRIVE MODEL ANDA
-# ========================================================
-# Masukkan ID file model anda dari Google Drive di bawah ini.
-# Contoh link: https://drive.google.com/file/d/FILE_ID_DISINI/view
-GDRIVE_FILE_ID = "1P1Xlxi5qq7NQKA-hs0PeZwycbNIn4RTP"
-# ========================================================
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
@@ -347,37 +338,40 @@ with st.sidebar:
     else:
         st.warning(f"⚠️ Model `{MODEL_NAME}` belum ada di server.")
         
-        if GDRIVE_FILE_ID and "YOUR_FILE_ID" not in GDRIVE_FILE_ID:
-            with st.status("📥 Mendownload model dari Google Drive...", expanded=True) as status:
-                try:
-                    # Cek apakah user memasukkan link utuh, ambil ID-nya saja
-                    import re
-                    target_id = GDRIVE_FILE_ID.strip()
-                    if "drive.google.com" in target_id:
-                        match = re.search(r'/d/([^/]+)', target_id)
-                        if match:
-                            target_id = match.group(1)
+        if not os.path.exists(MODEL_NAME):
 
-                    st.write("Target ID:", target_id)
+    with st.status(
+        "📥 Downloading model...",
+        expanded=True
+    ):
 
-                    url = f"https://drive.google.com/uc?id={target_id}"
-                    
-                    st.write("Download URL:", url)
-                            
-                    url = f'https://drive.google.com/uc?id={target_id}'
-                    gdown.download(url, MODEL_NAME, quiet=False, fuzzy=True)
-                    status.update(label="✅ Download Selesai!", state="complete")
-                    st.rerun() # Bootstrap loading logic
-                except Exception as de:
-                    status.update(label="❌ Gagal Download!", state="error")
-                    st.error(f"Gagal mengunduh model otomatis: {str(de)}")
-        else:
-            st.info("💡 Silakan isi `GDRIVE_FILE_ID` di baris ke-12 `app.py` agar server cloud bisa mendownload model otomatis.")
-            st.markdown(f"""
-            <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 0.75rem; border-radius: 4px; font-size: 0.85rem;">
-                Mode Simulasi aktif.
-            </div>
-            """, unsafe_allow_html=True)
+        try:
+
+            response = requests.get(
+                MODEL_URL,
+                stream=True,
+                timeout=300
+            )
+
+            response.raise_for_status()
+
+            with open(MODEL_NAME, "wb") as f:
+
+                for chunk in response.iter_content(
+                    chunk_size=8192
+                ):
+                    if chunk:
+                        f.write(chunk)
+
+            st.success(
+                "✅ Model berhasil didownload"
+            )
+
+        except Exception as e:
+
+            st.error(
+                f"❌ Gagal download model: {e}"
+            )
 
     st.markdown("---")
     st.caption("**Order Label Output (Model):**")
