@@ -373,6 +373,34 @@ with st.sidebar:
                 f"❌ Gagal download model: {e}"
             )
 
+        try:
+
+            response = requests.get(
+                MODEL_URL,
+                stream=True,
+                timeout=300
+            )
+
+            response.raise_for_status()
+
+            with open(MODEL_NAME, "wb") as f:
+
+                for chunk in response.iter_content(
+                    chunk_size=8192
+                ):
+                    if chunk:
+                        f.write(chunk)
+
+            st.success(
+                "✅ Model berhasil didownload"
+            )
+
+        except Exception as e:
+
+            st.error(
+                f"❌ Gagal download model: {e}"
+            )
+
     st.markdown("---")
     st.caption("**Order Label Output (Model):**")
     for idx, label in enumerate(DIAGNOSIS_LABELS):
