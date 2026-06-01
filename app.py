@@ -6,8 +6,15 @@ import io
 import base64
 import os
 import numpy as np
-import tensorflow as tf
-from tensorflow.keras.models import load_model
+import torch
+import torch.nn as nn
+
+from torchvision.models import (
+    resnet50,
+    ResNet50_Weights
+)
+
+from torchvision import transforms
 import gdown
 
 # ========================================================
