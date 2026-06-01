@@ -482,6 +482,14 @@ with colL:
                                 confidence, pred = torch.max(probs, 1)
                             idx = pred.item()
                             cf = confidence.item() * 100
+
+                            if cf < 70:
+                            
+                                st.warning(
+                                    "⚠️ Gambar tidak dikenali sebagai daun mangga atau kualitas gambar kurang baik."
+                                )
+                            
+                                st.stop()
                             d_name = DIAGNOSIS_LABELS[idx]
                             st.session_state.diagnosis = {
                                 'd': d_name, 'cf': round(cf, 1), 
