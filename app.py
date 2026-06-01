@@ -247,10 +247,10 @@ REC_SVGS = {
 
 # --- DATA & CONFIG ---
 DIAGNOSIS_LABELS = [
-    'Antraknosa',
-    'Bacterial Canker',
-    'Sehat',
-    'Embun Tepung'
+    "Antraknosa",
+    "Bacterial Canker",
+    "Sehat",
+    "Embun Tepung"
 ]
 
 DETAILED_INFO = {
