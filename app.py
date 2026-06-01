@@ -354,6 +354,12 @@ with st.sidebar:
                         match = re.search(r'/d/([^/]+)', target_id)
                         if match:
                             target_id = match.group(1)
+
+                    st.write("Target ID:", target_id)
+
+                    url = f"https://drive.google.com/uc?id={target_id}"
+                    
+                    st.write("Download URL:", url)
                             
                     url = f'https://drive.google.com/uc?id={target_id}'
                     gdown.download(url, MODEL_NAME, quiet=False, fuzzy=True)
