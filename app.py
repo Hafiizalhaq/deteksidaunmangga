@@ -22,7 +22,7 @@ import gdown
 # ========================================================
 # Masukkan ID file model anda dari Google Drive di bawah ini.
 # Contoh link: https://drive.google.com/file/d/FILE_ID_DISINI/view
-GDRIVE_FILE_ID = "1pMP-trDs2moQh-doiCblsiPMa-_DTpT5" 
+GDRIVE_FILE_ID = "https://drive.google.com/file/d/1P1Xlxi5qq7NQKA-hs0PeZwycbNIn4RTP/view?usp=sharing" 
 # ========================================================
 
 # --- PAGE CONFIGURATION ---
@@ -33,66 +33,43 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- WORKAROUND FOR KERAS VERSION COMPATIBILITY ---
-# Terkadang export dari Keras terbaru menambahkan parameter 'quantization_config' 
-# yang membuat error pada saat load di environment lawas. Kode di bawah me-bypass-nya secara aman.
-class SafeDense(tf.keras.layers.Dense):
-    def __init__(self, *args, **kwargs):
-        kwargs.pop('quantization_config', None)
-        super().__init__(*args, **kwargs)
 
-class SafeConv2D(tf.keras.layers.Conv2D):
-    def __init__(self, *args, **kwargs):
-        kwargs.pop('quantization_config', None)
-        super().__init__(*args, **kwargs)
+# --- PYTORCH MODEL LOADER ---
 
-class SafeBatchNormalization(tf.keras.layers.BatchNormalization):
-    def __init__(self, *args, **kwargs):
-        kwargs.pop('quantization_config', None)
-        super().__init__(*args, **kwargs)
-
-class SafeDepthwiseConv2D(tf.keras.layers.DepthwiseConv2D):
-    def __init__(self, *args, **kwargs):
-        kwargs.pop('quantization_config', None)
-        super().__init__(*args, **kwargs)
-
-# --- CACHED FUNCTIONS FOR MODEL LOAD ---
 @st.cache_resource
 def load_prediction_model(model_path):
-    try:
-        # Inject object kustom yang aman terhadap bug quantization_config
-        custom_objects = {
-            'Dense': SafeDense,
-            'Conv2D': SafeConv2D,
-            'BatchNormalization': SafeBatchNormalization,
-            'DepthwiseConv2D': SafeDepthwiseConv2D
-        }
-        model = load_model(model_path, compile=False, custom_objects=custom_objects)
-        return model
-    except Exception as e:
-        return e
+    device = torch.device("cpu")
+    model = resnet50(weights=None)
+    model.fc = nn.Sequential(
+        nn.Linear(2048,512),
+        nn.BatchNorm1d(512),
+        nn.ReLU(inplace=True),
+        nn.Dropout(0.3),
+        nn.Linear(512,128),
+        nn.ReLU(inplace=True),
+        nn.Dropout(0.3),
+        nn.Linear(128,4)
+    )
+    state_dict = torch.load(model_path, map_location=device)
+    model.load_state_dict(state_dict)
+    model.eval()
+    return model
 
 # Preprocessing utility
-def preprocess_image(image, target_size=(224, 224), norm_mode="Rescale 1./255"):
+
+def preprocess_image(image):
     if image.mode != "RGB":
         image = image.convert("RGB")
-    image = image.resize(target_size)
-    img_array = np.array(image, dtype=np.float32)
-    
-    if norm_mode == "Rescale 1./255":
-        img_array = img_array / 255.0
-    elif norm_mode == "Standard Keras (ResNet/MobileNet)":
-        # Simulates tf.keras.applications.resnet50.preprocess_input
-        # BGR conversion and ImageNet mean center
-        img_array = img_array[..., ::-1] # RGB to BGR
-        img_array[..., 0] -= 103.939
-        img_array[..., 1] -= 116.779
-        img_array[..., 2] -= 123.68
-    elif norm_mode == "EfficientNet V1 (Native 0-255)":
-        pass # No normalization, EfficientNet layers handle it inside model
-        
-    img_array = np.expand_dims(img_array, axis=0)
-    return img_array
+    transform = transforms.Compose([
+        transforms.Resize((224,224)),
+        transforms.ToTensor(),
+        transforms.Normalize(
+            mean=[0.485,0.456,0.406],
+            std=[0.229,0.224,0.225]
+        )
+    ])
+    tensor = transform(image).unsqueeze(0)
+    return tensor
 
 # --- ROBUST CUSTOM CSS INJECTION (FORCED THEME) ---
 st.markdown("""
@@ -271,9 +248,9 @@ REC_SVGS = {
 # --- DATA & CONFIG ---
 DIAGNOSIS_LABELS = [
     'Antraknosa',
-    'Bacterial Cancer',
-    'Embun Tepung',
-    'Sehat'
+    'Bacterial Canker',
+    'Sehat',
+    'Embun Tepung'
 ]
 
 DETAILED_INFO = {
@@ -341,9 +318,9 @@ def get_sev_props(sev):
 with st.sidebar:
     st.markdown("### ⚙️ Status Model AI")
     
-    MODEL_NAME = "model_resnet50.h5"
+    MODEL_NAME = "model fix.pth"
     arch_type = "ResNet50"
-    norm_mode = "Standard Keras (ResNet/MobileNet)" # Mengunci preprocessing yang tepat untuk ResNet
+    
     
     active_mode = "Simulasi"
     loaded_model = None
@@ -439,10 +416,13 @@ with colL:
                 if active_mode == "Real" and loaded_model:
                     with st.spinner("AI Menganalisis..."):
                         try:
-                            tensor = preprocess_image(img, norm_mode=norm_mode)
-                            preds = loaded_model.predict(tensor)
-                            idx = np.argmax(preds[0])
-                            cf = float(preds[0][idx]) * 100
+                            tensor = preprocess_image(img)
+                            with torch.no_grad():
+                                output = loaded_model(tensor)
+                                probs = torch.softmax(output, dim=1)
+                                confidence, pred = torch.max(probs, 1)
+                            idx = pred.item()
+                            cf = confidence.item() * 100
                             d_name = DIAGNOSIS_LABELS[idx]
                             st.session_state.diagnosis = {
                                 'd': d_name, 'cf': round(cf, 1), 
